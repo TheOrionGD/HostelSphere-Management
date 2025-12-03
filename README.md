@@ -1,6 +1,6 @@
 
 # 🏠 Hostel Management System
-````markdown
+
 A role-based desktop application built using **Python (Tkinter)** and **MySQL**, designed to streamline student hostel operations like **attendance tracking**, **outpass requests**, and **user management** for both students and wardens.
 
 ---
@@ -86,7 +86,7 @@ python homepage.py
 
 ## 📁 Project Structure
 
-```
+
 📦 hostel-management-system/
 ├── homepage.py
 ├── login.py
@@ -97,7 +97,7 @@ python homepage.py
 │   └── schema.sql
 ├── README.md
 └── Report.pdf
-```
+
 
 ---
 
