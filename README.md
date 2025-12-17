@@ -32,7 +32,22 @@ To design and implement a secure, user-friendly, and centralized platform for di
 | Platform   | Desktop Application        |
 
 ---
+```mermaid
+graph TD
+    A[User Interface] --> B[Authentication Module]
+    B --> C[Role-Based Dashboard]
 
+    C --> D[Hosteller Dashboard]
+    C --> E[Warden Dashboard]
+
+    D --> F[MySQL Database]
+    E --> F[MySQL Database]
+
+    F --> G[User Records]
+    F --> H[Room & Hostel Data]
+    F --> I[Attendance & Logs]
+```
+---
 ## 👥 User Roles & Features
 
 ### 👨‍🎓 Hosteller
@@ -86,7 +101,7 @@ python homepage.py
 
 ## 📁 Project Structure
 
-
+```
 📦 hostel-management-system/
 ├── homepage.py
 ├── login.py
@@ -97,7 +112,7 @@ python homepage.py
 │   └── schema.sql
 ├── README.md
 └── Report.pdf
-
+```
 
 ---
 
@@ -144,17 +159,18 @@ This project is licensed under the **MIT License** – see the `LICENSE` file fo
 ---
 
 ## 🙌 Acknowledgements
-
+```
 Special thanks to:
 
 * Dr. A. Delphin Carolina Rani (Head of CSE Dept.)
 * Ms. S. Uma Mageshwari (Project Supervisor)
 * All faculty and lab assistants of KRCT
-
+```
 ---
 
-## 📧 Contact
+## 🌟 Author
 
-**GODFREY T R**  
-📧 [Mail](mailto:godfrey.prof@gmail.com)  
-🔗 [LinkedIn](https://linkedin.com/in/godfrey-1823lw)
+Developed with curiosity and logic.
+
+If you like this project, consider giving it a ⭐ on GitHub — it helps others discover it.
+
