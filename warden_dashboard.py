@@ -3,32 +3,55 @@
 import tkinter as tk
 from tkinter import messagebox
 from datetime import datetime
-import mysql.connector
 import calendar
 from tkinter import ttk
-
-def get_db_connection():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="gd_hms"
-    )
+from db_helper import get_db_connection
 
 
 # --- Warden Dashboard ---
+warden_themes = {
+    "light": {"bg": "#FFF8DC", "fg": "#2c3e50", "btn_bg": "skyblue", "btn_fg": "black"},
+    "dark": {"bg": "#1e1900", "fg": "#FFD700", "btn_bg": "#3e3800", "btn_fg": "#FFD700"}
+}
+current_theme = "light"
+
 def open_warden_dashboard(username):
+    global current_theme
     conn = get_db_connection()
     cursor = conn.cursor()
     win = tk.Tk()
     win.title("Warden Dashboard")
-    win.geometry("600x600")
-    win.config(bg="#FFD700")
+    from gui_helper import center_window, apply_button_style, apply_label_style
+    center_window(win, 600, 620)
+    win.config(bg=warden_themes[current_theme]["bg"])
 
-    tk.Label(win, text=f"Welcome, Warden {username}!", font=("Arial", 16, "bold"), bg="#FFD700").pack(pady=20)
+    # UI Widgets
+    greeting = f"Welcome, Warden {username}!"
+    header_lbl = tk.Label(win, text=greeting, bg=win["bg"])
+    header_lbl.pack(pady=15)
+    apply_label_style(header_lbl, font_size=16, bold=True, color=warden_themes[current_theme]["fg"])
 
-    cal_label = tk.Label(win, text=calendar.month_name[datetime.now().month], font=("Arial", 14), bg="#FFD700")
+    cal_label = tk.Label(win, text=calendar.month_name[datetime.now().month], bg=win["bg"])
     cal_label.pack()
+    apply_label_style(cal_label, font_size=14, bold=True, color=warden_themes[current_theme]["fg"])
+
+    created_buttons = []
+
+    def toggle_theme():
+        global current_theme
+        current_theme = "dark" if current_theme == "light" else "light"
+        theme = warden_themes[current_theme]
+        win.config(bg=theme["bg"])
+        header_lbl.config(bg=theme["bg"], fg=theme["fg"])
+        cal_label.config(bg=theme["bg"], fg=theme["fg"])
+        for text, b in zip([t for t, _ in btns], created_buttons):
+            hover_color = "#292400" if current_theme == "dark" else "#87ceeb"
+            if "Theme" in text:
+                apply_button_style(b, bg_color="#5bc0de", hover_bg="#31b0d5")
+            elif "Logout" in text:
+                apply_button_style(b, bg_color="#ff6666", hover_bg="#ff4d4d")
+            else:
+                apply_button_style(b, bg_color=theme["btn_bg"], fg_color=theme["btn_fg"], hover_bg=hover_color)
 
     btns = [
         ("View Attendance", view_attendance),
@@ -37,10 +60,20 @@ def open_warden_dashboard(username):
         ("📅 Attendance Overview", view_attendance_summary),
         ("🎂 Birthday Alerts", show_birthday_alerts),
         ("🔍 Filter Hostellers", filter_hostellers),
+        ("🎨 Switch Theme", toggle_theme),
         ("🚪 Logout", win.destroy)
     ]
     for text, cmd in btns:
-        tk.Button(win, text=text, font=("Arial", 12), bg="skyblue", width=30, command=cmd).pack(pady=8)
+        btn = tk.Button(win, text=text, command=cmd)
+        btn.pack(pady=8)
+        hover_color = "#292400" if current_theme == "dark" else "#87ceeb"
+        if "Theme" in text:
+            apply_button_style(btn, bg_color="#5bc0de", hover_bg="#31b0d5")
+        elif "Logout" in text:
+            apply_button_style(btn, bg_color="#ff6666", hover_bg="#ff4d4d")
+        else:
+            apply_button_style(btn, bg_color=warden_themes[current_theme]["btn_bg"], fg_color=warden_themes[current_theme]["btn_fg"], hover_bg=hover_color)
+        created_buttons.append(btn)
 
     win.mainloop()
 
@@ -306,17 +339,16 @@ def show_birthday_alerts():
         cursor.close()
         conn.close()
 
-    except mysql.connector.Error as err:
+    except Exception as err:
         messagebox.showerror("Database Error", f"Error fetching birthday list:\n{err}")
-
 
 
 def filter_hostellers():
     def apply_filter():
-        # Get the filter values from the selected dropdown options
         hostel_name = hostel_name_var.get()
         department = department_var.get()
         year_of_study = year_of_study_var.get()
+        search_query = search_entry.get().strip()
 
         # Build the query based on the provided filter values
         query = "SELECT first_name, last_name, hostel_name, department, year_of_study FROM users WHERE role = 'hosteller'"
@@ -334,6 +366,10 @@ def filter_hostellers():
         if year_of_study != "All Years":
             conditions.append("year_of_study = %s")
             params.append(year_of_study)
+        if search_query:
+            conditions.append("(first_name LIKE %s OR last_name LIKE %s OR email LIKE %s OR username LIKE %s)")
+            wildcard = f"%{search_query}%"
+            params.extend([wildcard, wildcard, wildcard, wildcard])
 
         # Add conditions to the query if any filters are applied
         if conditions:
@@ -397,8 +433,13 @@ def filter_hostellers():
     # Create a new window for filter options
     filter_win = tk.Toplevel()
     filter_win.title("Filter Hostellers")
-    filter_win.geometry("400x300")
+    filter_win.geometry("400x380")
     filter_win.config(bg="white")
+
+    # Name Search Field
+    tk.Label(filter_win, text="Search by Name or Email (Optional)", bg="white").pack(pady=5)
+    search_entry = tk.Entry(filter_win, font=("Arial", 12), width=25)
+    search_entry.pack(pady=5)
 
     # Hostel Name Dropdown
     tk.Label(filter_win, text="Filter by Hostel Name", bg="white").pack(pady=5)
